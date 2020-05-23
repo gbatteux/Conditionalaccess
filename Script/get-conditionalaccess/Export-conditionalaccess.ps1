@@ -8,9 +8,9 @@
 # The resource URI
 $resource = "https://graph.microsoft.com"
 # Your Client ID and Client Secret obainted when registering your WebApp
-$clientid = "01a98767-df6e-4cdf-9752-c4e2f2d92a91"
-$clientSecret = "3l6SnV35..sB.1-m9L0MGYhQS.A8.MJbG-"
-$redirectUri = "https://lazyadministrator.net"
+$clientid = ""
+$clientSecret = ""
+$redirectUri = ""
 
 # UrlEncode the ClientID and ClientSecret and URL's for special characters 
 Add-Type -AssemblyName System.Web
