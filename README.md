@@ -1,5 +1,7 @@
 # Conditional access
-Manage Azure Conditional access with Powershell 
+Manage Azure Conditional access with Powershell:
+* Export All conditional access to csv
+* Create Conditional access from CSV
 
 ## Consent and Permissions
 
