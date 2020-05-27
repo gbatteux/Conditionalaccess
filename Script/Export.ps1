@@ -1,6 +1,3 @@
-﻿$ModuleGraph = "C:\Users\GBATTEUX\Desktop\ConnectO365Services\ConnectO365Services.ps1"
-& $ModuleGraph
-
 $AccessToken = Connect-toGraph 
 
 
@@ -269,6 +266,6 @@ $($conditionalaccess.displayName)
 #pause
 }
 
-$allconditionalaccess | Export-Csv -Path $exportconditionalaccess -NoTypeInformation -Encoding ASCII
+$allconditionalaccess | Export-Csv -Path $exportconditionalaccess -NoTypeInformation -Encoding UTF8
 
 
