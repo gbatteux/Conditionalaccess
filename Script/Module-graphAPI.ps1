@@ -52,7 +52,7 @@ function Post-MsGraph {
 
     $HeaderParams = @{
         'Content-Type'  = "application\json"
-        'Authorization' = "$($OAuth.token_type) $($AccessToken)"
+        'Authorization' = "Bearer $($AccessToken)"
     }
 
     $ResultArray = @()

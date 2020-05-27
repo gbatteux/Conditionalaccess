@@ -27,6 +27,17 @@ foreach ($conditionalaccess in $conditionalaccess)
     $excludeApplications = $null
     $IncludeRole = $null
     $ExcludeRole =$null
+    $deviceStates = $null
+    $clientAppTypes = $null
+    $signInRiskLevels = $null
+    $includeUserActions = $null
+    $Includeplatforms = $null
+    $excludeplatforms = $null 
+    $includeLocations = $null
+    $excludeLocations = $null
+    $includeDeviceStates = $null
+    $excludeDeviceStates = $null
+    $grantbuiltInControls = $null
 
 
     ##################### part get global information 
@@ -43,21 +54,21 @@ foreach ($conditionalaccess in $conditionalaccess)
     $($conditionalaccess.conditions.applications.includeApplications) | % {
         if ($_ -eq "ALL")
         {
-            $includeApplications+= $_ +";"
+            $includeApplications+= $_ 
         }
         elseif ($_ -eq "Office365")
         {
-            $includeApplications+= $_ +";"
+            $includeApplications+=  $_ +"`r" 
         }
         elseif ($_ -eq "none")
         {
-            $includeApplications+= $_ +";"
+            $includeApplications+=  $_ 
         }
         else
         {
             $apiUrl = "https://graph.microsoft.com/beta/servicePrincipals?`$filter=appid eq '$_'"
             $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-            $includeApplications+= ($Data).displayName + ";"        
+            $includeApplications+=  ($Data).displayName  + "`r"       
         }
     }
     $output | Add-Member NoteProperty -Name "includeApplications" -value  "$includeApplications"
@@ -66,41 +77,65 @@ foreach ($conditionalaccess in $conditionalaccess)
     $($conditionalaccess.conditions.applications.excludeApplications) | % {
         if ($_ -eq "ALL")
         {
-            $excludeApplications+= $_ +";"
+            $excludeApplications+=  $_ 
         }
         elseif ($_ -eq "Office365")
         {
-            $excludeApplications+= $_ +";"
+            $excludeApplications+= $_ + "`r" 
+        }
+        elseif ($_ -eq "none")
+        {
+            $excludeApplications+=  $_ 
         }
         else
         {
             #$ExcludeGroupId = (Get-MsGraph -AccessToken $AccessToken -Uri $Uri | Where-Object { $_.displayName -eq $ExcludeGroup }).id
             $apiUrl = "https://graph.microsoft.com/beta/servicePrincipals?`$filter=appid eq '$_'"
             $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-            $excludeApplications+= ($Data).displayName + ";"        
+            $excludeApplications+=  ($Data).displayName + "`r"     
         }
     }
     $output | Add-Member NoteProperty -Name "excludeApplications" -value  "$excludeApplications"
-    $output | Add-Member NoteProperty -Name "includeUserActions" -value "$($conditionalaccess.conditions.applications.includeUserActions)"
-    $output | Add-Member NoteProperty -Name "signInRiskLevels" -value "$($conditionalaccess.conditions.signInRiskLevels)"
-    $output | Add-Member NoteProperty -Name "clientAppTypes" -value "$($conditionalaccess.conditions.clientAppTypes)"
-    $output | Add-Member NoteProperty -Name "deviceStates" -value "$($conditionalaccess.conditions.deviceStates)"
+    
+    #get includeUserActions
+    $($conditionalaccess.conditions.applications.includeUserActions) | % {
+        $includeUserActions+= "$_" + "`r"
+    }
+    $output | Add-Member NoteProperty -Name "includeUserActions" -value "$includeUserActions"
+
+    #Get signInRiskLevels
+    $($conditionalaccess.conditions.signInRiskLevels) | % {
+        $signInRiskLevels+= "$_" + "`r"
+    }
+    $output | Add-Member NoteProperty -Name "signInRiskLevels" -value "$signInRiskLevels"
+
+    #get clientAppTypes
+    $($conditionalaccess.conditions.clientAppTypes) | % {
+        $clientAppTypes+= "$_" + "`r" 
+    }
+    $output | Add-Member NoteProperty -Name "clientAppTypes" -value "$clientAppTypes"
+
+    #get deviceStates
+    $($conditionalaccess.conditions.deviceStates) | % {
+        $deviceStates+= "$_" + "`r" 
+    }
+    $output | Add-Member NoteProperty -Name "deviceStates" -value "$deviceStates"
     
     # get Include  user displayname 
     $($conditionalaccess.conditions.users.includeusers) | % {
         if ($_ -eq "ALL")
         {
-            $userInclude+= $_ +";"
+            $userInclude+=  $_ 
         }
         elseif ($_ -eq "GuestsOrExternalUsers")
         {
-            $userInclude+= $_ +";"
+            $userInclude+=  $_ + "`r" 
         }
         else
         {
             $apiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=id eq '$_'"
             $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-            $userInclude+= ($Data).displayName + ";" 
+            $userInclude+= ($Data).displayName + "`r" 
         
         }
     }
@@ -111,17 +146,17 @@ foreach ($conditionalaccess in $conditionalaccess)
     $($conditionalaccess.conditions.users.excludeusers) | % {
         if ($_ -eq "ALL")
         {
-            $userexclude+= $_ +";"
+            $userexclude+= $_ 
         }
         elseif ($_ -eq "GuestsOrExternalUsers")
         {
-            $userexclude+= $_ +";"
+            $userexclude+=  $_ + "`r" 
         }
         else
         {    
             $apiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=id eq '$_'"
             $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-            $userexclude+= ($Data).displayName + ";"
+            $userexclude+=  ($Data).displayName + "`r" 
         }
      }
      $output | Add-Member NoteProperty -Name "excludeUsers" -value "$userexclude"
@@ -129,49 +164,111 @@ foreach ($conditionalaccess in $conditionalaccess)
 
     #get Include group displayname  
     $($conditionalaccess.conditions.users.includeGroups) | % {
-    $apiUrl = "https://graph.microsoft.com/v1.0/groups?`$filter=id eq '$_'"
-    $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-    $groupInclude+= ($Data).displayName + ";" }
+        $apiUrl = "https://graph.microsoft.com/v1.0/groups?`$filter=id eq '$_'"
+        $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
+        $groupInclude+= ($Data).displayName + "`r" 
+    }
     $output | Add-Member NoteProperty -Name "includeGroups" -value "$groupInclude"
 
     #get Exclude group displayname
     $($conditionalaccess.conditions.users.excludeGroups) | % {
-    $apiUrl = "https://graph.microsoft.com/v1.0/groups?`$filter=id eq '$_'"
-    $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-    $groupexclude+= ($Data).displayName + ";" }
+        $apiUrl = "https://graph.microsoft.com/v1.0/groups?`$filter=id eq '$_'"
+        $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
+        $groupexclude+= ($Data).displayName + "`r"  
+    }
     $output | Add-Member NoteProperty -Name "excludeGroups" -value "$groupexclude"
 
     #get Include groupManagement  displayname
     $($conditionalaccess.conditions.users.includeRoles) | % {
-    $apiUrl = "https://graph.microsoft.com/v1.0/directoryRoleTemplates?`$filter=id eq '$_'"
-    $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-    $IncludeRole+= ($Data).displayName + ";" }
+        $apiUrl = "https://graph.microsoft.com/v1.0/directoryRoleTemplates?`$filter=id eq '$_'"
+        $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
+        $IncludeRole+= ($Data).displayName + "`r" 
+    }
     $output | Add-Member NoteProperty -Name "includeRoles" -value "$IncludeRole"
     
-    #get exclude groupManagement  displayname
+    #get exclude Roles  displayname
     $($conditionalaccess.conditions.users.excludeRoles) | % {
-    $apiUrl = "https://graph.microsoft.com/v1.0/directoryRoleTemplates?`$filter=id eq '$_'"
-    $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
-    $excludeRole+= ($Data).displayName + ";" }
+        $apiUrl = "https://graph.microsoft.com/v1.0/directoryRoleTemplates?`$filter=id eq '$_'"
+        $Data = Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl
+        $excludeRole+= ($Data).displayName + "`r"
+    }
     $output | Add-Member NoteProperty -Name "excludeRoles" -value "$excludeRole"
 
-    $output | Add-Member NoteProperty -Name "Includeplatforms" -value "$($conditionalaccess.conditions.platforms.includePlatforms)"
-    $output | Add-Member NoteProperty -Name "excludeplatforms" -value "$($conditionalaccess.conditions.platforms.excludePlatforms)"
-    $output | Add-Member NoteProperty -Name "includeLocations" -value "$($conditionalaccess.conditions.locations.includeLocations)"
-    $output | Add-Member NoteProperty -Name "excludeLocations" -value "$($conditionalaccess.conditions.locations.excludeLocations)"
-    $output | Add-Member NoteProperty -Name "includeDeviceStates" -value "$($conditionalaccess.conditions.devices.includeDeviceStates)"
-    $output | Add-Member NoteProperty -Name "excludeDeviceStates" -value "$($conditionalaccess.conditions.devices.excludeDeviceStates)"
+    # get includePlatforms
+    $($conditionalaccess.conditions.platforms.includePlatforms) | % {
+        $Includeplatforms+= "$_" + "`r" 
+    }
+    $output | Add-Member NoteProperty -Name "Includeplatforms" -value "$Includeplatforms"
+
+
+    # get ExcludePlatforms
+    $($conditionalaccess.conditions.platforms.excludePlatforms) | % {
+        $excludeplatforms+= "$_" + "`r" 
+    }
+    $output | Add-Member NoteProperty -Name "excludeplatforms" -value "$excludeplatforms"
+
+
+    # get includeLocations
+    $($conditionalaccess.conditions.locations.includeLocations) | % {
+
+        if ($_ -eq "ALL")
+        {
+            $includeLocations+= $_ 
+        }
+        else
+        {
+            $apiUrl = "https://graph.microsoft.com/beta/conditionalaccess/namedlocations?`$filter=id eq '$_'"
+            $Locations = (Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl).displayname
+            $includeLocations+= "$locations" + "`r"
+        }
+    }
+    $output | Add-Member NoteProperty -Name "includeLocations" -value "$includeLocations"
+    
+    # get excludeLocations
+    $($conditionalaccess.conditions.locations.excludeLocations) | % {
+        if ($_ -eq "ALL")
+        {
+            $excludeLocations+= $_ 
+        }
+        else
+        {
+            $apiUrl = "https://graph.microsoft.com/beta/conditionalaccess/namedlocations?`$filter=id eq '$_'"
+            $Locations = (Get-MsGraph -AccessToken $AccessToken -Uri $ApiUrl).displayname
+            $excludeLocations+= "$locations" + "`r"  
+        }
+    }
+    $output | Add-Member NoteProperty -Name "excludeLocations" -value "$excludeLocations"
+
+    # get includeDeviceStates
+    $($conditionalaccess.conditions.devices.includeDeviceStates) | % {
+        $includeDeviceStates+= "$_" + "`r" 
+    }
+    $output | Add-Member NoteProperty -Name "includeDeviceStates" -value "$includeDeviceStates"
+
+    # get excludeDeviceStates
+    $($conditionalaccess.conditions.devices.excludeDeviceStates) | % {
+        $excludeDeviceStates+= "$_" + "`r" 
+    }
+    $output | Add-Member NoteProperty -Name "excludeDeviceStates" -value "$excludeDeviceStates"
+
     # part get grant Controls 
     $output | Add-Member NoteProperty -Name "grantoperator" -value "$($conditionalaccess.grantControls.operator)"
-    $output | Add-Member NoteProperty -Name "grantbuiltInControls" -value "$($conditionalaccess.grantControls.builtInControls)"
+
+    #get grantControls
+    $($conditionalaccess.grantControls.builtInControls) | % {
+        $grantbuiltInControls+= "$_" + "`r"
+    }
+    $output | Add-Member NoteProperty -Name "grantbuiltInControls" -value "$grantbuiltInControls"
+
     $output | Add-Member NoteProperty -Name "customAuthenticationFactors" -value "$($conditionalaccess.grantControls.customAuthenticationFactors)"
     $output | Add-Member NoteProperty -Name "termsOfUse" -value "$($conditionalaccess.grantControls.termsOfUse)"
 
     $allconditionalaccess+= $Output
 
 $($conditionalaccess.displayName)
+#pause
 }
 
-$allconditionalaccess | Export-Csv -Path $exportconditionalaccess -Encoding UTF8 -NoTypeInformation 
+$allconditionalaccess | Export-Csv -Path $exportconditionalaccess -NoTypeInformation -Encoding ASCII
 
 
